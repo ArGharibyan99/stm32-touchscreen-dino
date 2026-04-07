@@ -1,50 +1,51 @@
 # stm32-touchscreen-dino
 
-Minimal C++ project skeleton using CMake.
+Single-file Zephyr C++ application for the STM32 Nucleo-F429ZI board.
 
 ## Structure
 
 ```text
 .
 ├── CMakeLists.txt
-├── include
-├── src
-│   └── main.cpp
-└── tests
-    └── CMakeLists.txt
+├── prj.conf
+├── scripts
+│   ├── build.sh
+│   └── flash.sh
+└── src
+    └── main.cpp
 ```
+
+## Board
+
+This project is configured for the Zephyr board target `nucleo_f429zi`.
 
 ## Build
-
-```bash
-cmake -S . -B build
-cmake --build build
-```
-
-Or use the helper script:
 
 ```bash
 ./scripts/build.sh
 ```
 
-## Run
+On a fresh checkout, the script will initialize the west workspace, fetch Zephyr sources if needed, and perform a pristine build.
+
+On later builds, it skips those first-build setup steps and uses a non-pristine rebuild by default.
+
+The effective build command is:
 
 ```bash
-./build/stm32_touchscreen_dino
-```
-
-## Test
-
-```bash
-ctest --test-dir build --output-on-failure
+west build -p <always|never> -b nucleo_f429zi . -d build/nucleo_f429zi
 ```
 
 ## Flash
-
-If you have an STM32 firmware image and `openocd` installed:
 
 ```bash
 ./scripts/flash.sh
 ```
 
-The script will detect connected ST-LINK USB devices, let you choose one, and then program the selected board.
+The flash script looks for connected ST-LINK probes, lets you choose one, and flashes the Zephyr output from `build/nucleo_f429zi/zephyr/`.
+
+## Notes
+
+- `src/main.cpp` is the Zephyr application entry point.
+- `prj.conf` enables C++ support and console output.
+- `west.yml` tracks Zephyr and its dependent repositories as external workspace sources.
+- You need `west`, a working Zephyr environment, and `openocd`.

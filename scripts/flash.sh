@@ -3,17 +3,17 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build}"
-TARGET_NAME="${TARGET_NAME:-stm32_touchscreen_dino}"
+BOARD="${BOARD:-nucleo_f429zi}"
+BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build/${BOARD}}"
 OPENOCD_INTERFACE="${OPENOCD_INTERFACE:-interface/stlink.cfg}"
 OPENOCD_TARGET="${OPENOCD_TARGET:-target/stm32f4x.cfg}"
 FLASH_ADDRESS="${FLASH_ADDRESS:-0x08000000}"
 
 find_firmware() {
   local candidates=(
-    "${BUILD_DIR}/${TARGET_NAME}.elf"
-    "${BUILD_DIR}/${TARGET_NAME}.bin"
-    "${BUILD_DIR}/${TARGET_NAME}"
+    "${BUILD_DIR}/zephyr/zephyr.elf"
+    "${BUILD_DIR}/zephyr/zephyr.hex"
+    "${BUILD_DIR}/zephyr/zephyr.bin"
   )
   local candidate
 
@@ -82,9 +82,9 @@ fi
 if ! firmware_path="$(find_firmware)"; then
   echo "No firmware artifact found in ${BUILD_DIR}" >&2
   echo "Expected one of:" >&2
-  echo "  ${BUILD_DIR}/${TARGET_NAME}.elf" >&2
-  echo "  ${BUILD_DIR}/${TARGET_NAME}.bin" >&2
-  echo "  ${BUILD_DIR}/${TARGET_NAME}" >&2
+  echo "  ${BUILD_DIR}/zephyr/zephyr.elf" >&2
+  echo "  ${BUILD_DIR}/zephyr/zephyr.hex" >&2
+  echo "  ${BUILD_DIR}/zephyr/zephyr.bin" >&2
   exit 1
 fi
 

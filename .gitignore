@@ -2,3 +2,9 @@ build/
 .vscode/
 .idea/
 .DS_Store
+bootloader/
+external/
+modules/
+toolchain/
+tools/
+zephyr/
