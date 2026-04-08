@@ -1,0 +1,6 @@
+board:
+  name: dino_nucleo_f429zi
+  full_name: Dino Nucleo F429ZI
+  vendor: st
+  socs:
+    - name: stm32f429xx
