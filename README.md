@@ -6,6 +6,9 @@ Single-file Zephyr C++ application for the STM32 Nucleo-F429ZI board.
 
 ```text
 .
+├── boards
+│   └── st
+│       └── dino_nucleo_f429zi
 ├── CMakeLists.txt
 ├── prj.conf
 ├── scripts
@@ -17,7 +20,7 @@ Single-file Zephyr C++ application for the STM32 Nucleo-F429ZI board.
 
 ## Board
 
-This project is configured for the Zephyr board target `nucleo_f429zi`.
+This project is configured for the Zephyr board target `dino_nucleo_f429zi`.
 
 ## Build
 
@@ -29,10 +32,12 @@ On a fresh checkout, the script will initialize the west workspace, fetch Zephyr
 
 On later builds, it skips those first-build setup steps and uses a non-pristine rebuild by default.
 
+The board definition for `dino_nucleo_f429zi` is copied into this repo under `boards/st/dino_nucleo_f429zi`, and the build passes `BOARD_ROOT` so DTS/Kconfig/board files come from your project instead of editing Zephyr's copy.
+
 The effective build command is:
 
 ```bash
-west build -p <always|never> -b nucleo_f429zi . -d build/nucleo_f429zi
+west build -p <always|never> -b dino_nucleo_f429zi . -d build/dino_nucleo_f429zi -- -DBOARD_ROOT=$PWD
 ```
 
 ## Docker Build
@@ -61,7 +66,7 @@ This starts an interactive container shell with the project mounted at the same 
 ./scripts/flash.sh
 ```
 
-The flash script looks for connected ST-LINK probes, lets you choose one, and flashes the Zephyr output from `build/nucleo_f429zi/zephyr/`.
+The flash script looks for connected ST-LINK probes, lets you choose one, and flashes the Zephyr output from `build/dino_nucleo_f429zi/zephyr/`.
 
 ## Notes
 

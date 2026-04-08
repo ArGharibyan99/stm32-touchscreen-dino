@@ -5,8 +5,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROOT_NAME="$(basename "${ROOT_DIR}")"
 PARENT_DIR="$(dirname "${ROOT_DIR}")"
-BOARD="${BOARD:-nucleo_f429zi}"
+BOARD="${BOARD:-dino_nucleo_f429zi}"
 BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build/${BOARD}}"
+LOCAL_BOARD_ROOT="${ROOT_DIR}"
 LOCAL_ZEPHYR_BASE="${ROOT_DIR}/zephyr"
 LOCAL_EXTERNAL_ZEPHYR_BASE="${ROOT_DIR}/external/zephyr"
 LOCAL_ZEPHYR_SDK="${ROOT_DIR}/toolchain/zephyr-sdk"
@@ -224,13 +225,23 @@ west_args=(
   -b "${BOARD}"
   "${ROOT_DIR}"
   -d "${BUILD_DIR}"
+  --
+  "-DBOARD_ROOT=${LOCAL_BOARD_ROOT}"
 )
 
 if (($# > 0)); then
+  west_args=(
+    build
+    -p "${PRISTINE}"
+    -b "${BOARD}"
+    "${ROOT_DIR}"
+    -d "${BUILD_DIR}"
+  )
   west_args+=("$@")
+  west_args+=("--" "-DBOARD_ROOT=${LOCAL_BOARD_ROOT}")
 fi
 
-echo "Building Zephyr app for board ${BOARD}"
+echo "Building Zephyr app for board ${BOARD} using board files from ${LOCAL_BOARD_ROOT}/boards"
 west "${west_args[@]}"
 
 echo "Build complete: ${BUILD_DIR}/zephyr/zephyr.elf"

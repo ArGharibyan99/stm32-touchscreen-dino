@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BOARD="${BOARD:-nucleo_f429zi}"
+BOARD="${BOARD:-dino_nucleo_f429zi}"
 BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build/${BOARD}}"
 OPENOCD_INTERFACE="${OPENOCD_INTERFACE:-interface/stlink.cfg}"
 OPENOCD_TARGET="${OPENOCD_TARGET:-target/stm32f4x.cfg}"
