@@ -35,6 +35,26 @@ The effective build command is:
 west build -p <always|never> -b nucleo_f429zi . -d build/nucleo_f429zi
 ```
 
+## Docker Build
+
+```bash
+./scripts/docker-build.sh
+```
+
+This script only builds the local Docker image.
+
+## Docker Run
+
+```bash
+./scripts/docker-run.sh
+```
+
+This starts an interactive container shell with the project mounted at the same absolute path as on the host. From inside the container you can run:
+
+```bash
+./scripts/build.sh
+```
+
 ## Flash
 
 ```bash
