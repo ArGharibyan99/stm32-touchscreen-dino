@@ -14,6 +14,7 @@ LOCAL_ZEPHYR_SDK="${ROOT_DIR}/toolchain/zephyr-sdk"
 SHARED_ZEPHYR_SDK="${PARENT_DIR}/zephyr-sdk"
 SIBLING_PROJECT_ZEPHYR_SDK="${PARENT_DIR}/stm32-touchscreen-dino/toolchain/zephyr-sdk"
 SDK_INSTALL_DIR_DEFAULT="${ZEPHYR_SDK_INSTALL_DIR:-${SHARED_ZEPHYR_SDK}}"
+SDK_TMP_DIR="${ROOT_DIR}/.tmp/zephyr-sdk"
 WEST_TOPDIR="${WEST_TOPDIR:-}"
 PRISTINE="${PRISTINE:-auto}"
 
@@ -118,9 +119,10 @@ ensure_zephyr_sdk() {
   fi
 
   echo "Installing Zephyr SDK into ${SDK_INSTALL_DIR_DEFAULT}"
+  mkdir -p "${SDK_TMP_DIR}"
   (
     cd "${ROOT_DIR}"
-    west sdk install --install-dir "${SDK_INSTALL_DIR_DEFAULT}" --gnu-toolchains arm-zephyr-eabi
+    TMPDIR="${SDK_TMP_DIR}" west sdk install --install-dir "${SDK_INSTALL_DIR_DEFAULT}" --gnu-toolchains arm-zephyr-eabi
   )
 
   sdk_dir="$(detect_zephyr_sdk)" || {

@@ -7,6 +7,10 @@ BOARD="${BOARD:-dino_nucleo_f429zi}"
 BUILD_DIR="${BUILD_DIR:-${ROOT_DIR}/build/${BOARD}}"
 OPENOCD_INTERFACE="${OPENOCD_INTERFACE:-interface/stlink.cfg}"
 OPENOCD_TARGET="${OPENOCD_TARGET:-target/stm32f4x.cfg}"
+OPENOCD_BOARD_CFG="${OPENOCD_BOARD_CFG:-${ROOT_DIR}/boards/st/${BOARD}/support/openocd.cfg}"
+OPENOCD_SPEED="${OPENOCD_SPEED:-4000}"
+OPENOCD_RESET_SPEED="${OPENOCD_RESET_SPEED:-1800}"
+OPENOCD_TARGET_NAME="${OPENOCD_TARGET_NAME:-stm32f4x.cpu}"
 FLASH_ADDRESS="${FLASH_ADDRESS:-0x08000000}"
 
 find_firmware() {
@@ -126,9 +130,21 @@ fi
 
 IFS='|' read -r selected_product selected_serial selected_sysname <<<"${devices[selection - 1]}"
 
-openocd_args=(
-  -f "${OPENOCD_INTERFACE}"
-  -f "${OPENOCD_TARGET}"
+openocd_args=()
+
+if [[ -f "${OPENOCD_BOARD_CFG}" ]]; then
+  openocd_args+=( -f "${OPENOCD_BOARD_CFG}" )
+else
+  openocd_args+=(
+    -f "${OPENOCD_INTERFACE}"
+    -f "${OPENOCD_TARGET}"
+  )
+fi
+
+openocd_args+=(
+  -c "adapter speed ${OPENOCD_SPEED}"
+  -c "${OPENOCD_TARGET_NAME} configure -event reset-start { adapter speed ${OPENOCD_RESET_SPEED} }"
+  -c "${OPENOCD_TARGET_NAME} configure -event reset-init { adapter speed ${OPENOCD_SPEED} }"
 )
 
 if [[ -n "${selected_serial}" ]]; then
@@ -141,5 +157,5 @@ else
   openocd_args+=(-c "program ${firmware_path} verify reset exit")
 fi
 
-echo "Flashing ${firmware_path} to ${selected_product}"
+echo "Flashing ${firmware_path} to ${selected_product} with OpenOCD speed ${OPENOCD_SPEED} kHz"
 openocd "${openocd_args[@]}"
