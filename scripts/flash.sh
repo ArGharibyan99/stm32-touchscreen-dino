@@ -28,23 +28,29 @@ find_firmware() {
 }
 
 collect_stlink_devices() {
-  local sysdev vendor_file vendor product_file product serial_file serial manufacturer_file manufacturer
+  local sysdev vendor_file vendor id_product_file id_product product_file product serial_file serial manufacturer_file manufacturer
   for vendor_file in /sys/bus/usb/devices/*/idVendor; do
     [[ -f "${vendor_file}" ]] || continue
     vendor="$(<"${vendor_file}")"
     [[ "${vendor}" == "0483" ]] || continue
 
     sysdev="$(dirname "${vendor_file}")"
+    id_product_file="${sysdev}/idProduct"
     product_file="${sysdev}/product"
     manufacturer_file="${sysdev}/manufacturer"
     serial_file="${sysdev}/serial"
+    id_product="$( [[ -f "${id_product_file}" ]] && cat "${id_product_file}" || printf '' )"
 
-    product="$( [[ -f "${product_file}" ]] && <"${product_file}" || printf 'Unknown product' )"
-    manufacturer="$( [[ -f "${manufacturer_file}" ]] && <"${manufacturer_file}" || printf 'Unknown vendor' )"
-    serial="$( [[ -f "${serial_file}" ]] && <"${serial_file}" || printf '' )"
+    product="$( [[ -f "${product_file}" ]] && cat "${product_file}" || printf 'Unknown product' )"
+    manufacturer="$( [[ -f "${manufacturer_file}" ]] && cat "${manufacturer_file}" || printf 'Unknown vendor' )"
+    serial="$( [[ -f "${serial_file}" ]] && cat "${serial_file}" || printf '' )"
 
-    if [[ "${manufacturer}" == *"STMicro"* || "${product}" == *"ST-LINK"* || -n "${serial}" ]]; then
-      printf '%s|%s|%s\n' "${product}" "${serial}" "${sysdev##*/}"
+    if [[ "${manufacturer}" == *"STMicro"* || \
+          "${product}" == *"ST-LINK"* || \
+          -n "${serial}" || \
+          "${id_product}" == "3748" || \
+          "${id_product}" == "374b" ]]; then
+      printf '%s|%s|%s\n' "${product:-ST-LINK}" "${serial}" "${sysdev##*/}"
     fi
   done
 }
@@ -60,9 +66,9 @@ print_usb_diagnostics() {
     manufacturer_file="${sysdev}/manufacturer"
     serial_file="${sysdev}/serial"
     vendor="$(<"${vendor_file}")"
-    product="$( [[ -f "${product_file}" ]] && <"${product_file}" || printf 'Unknown product' )"
-    manufacturer="$( [[ -f "${manufacturer_file}" ]] && <"${manufacturer_file}" || printf 'Unknown vendor' )"
-    serial="$( [[ -f "${serial_file}" ]] && <"${serial_file}" || printf '' )"
+    product="$( [[ -f "${product_file}" ]] && cat "${product_file}" || printf 'Unknown product' )"
+    manufacturer="$( [[ -f "${manufacturer_file}" ]] && cat "${manufacturer_file}" || printf 'Unknown vendor' )"
+    serial="$( [[ -f "${serial_file}" ]] && cat "${serial_file}" || printf '' )"
 
     if [[ -n "${serial}" ]]; then
       printf '  %s vendor=%s product=%s manufacturer="%s" name="%s" serial="%s"\n' \
