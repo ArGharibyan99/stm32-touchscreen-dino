@@ -30,12 +30,20 @@ static constexpr uint16_t START_BUTTON_Y = SCREEN_HEIGHT - START_BUTTON_HEIGHT -
 static constexpr uint16_t START_BUTTON_COLOR = 0x8410;
 static constexpr uint16_t START_TEXT_COLOR = 0xFFFF;
 static constexpr uint16_t START_BORDER_COLOR = 0xBDF7;
+static constexpr uint16_t EXIT_BUTTON_WIDTH = 100;
+static constexpr uint16_t EXIT_BUTTON_HEIGHT = 60;
+static constexpr uint16_t EXIT_BUTTON_X = SCREEN_WIDTH - EXIT_BUTTON_WIDTH - 20;
+static constexpr uint16_t EXIT_BUTTON_Y = 20;
 
 static struct {
     int32_t x;
     int32_t y;
     bool pressed;
+    bool start_pressed;
+    bool exit_pressed;
 } touch_state;
+
+static app_display_screen current_screen = APP_DISPLAY_SCREEN_MENU;
 
 static FATFS fat_fs;
 static struct fs_mount_t animation_mount = {
@@ -60,22 +68,52 @@ static constexpr uint8_t FONT_A[7] = {
 static constexpr uint8_t FONT_R[7] = {
     0x1E, 0x11, 0x11, 0x1E, 0x14, 0x12, 0x11,
 };
+static constexpr uint8_t FONT_E[7] = {
+    0x1F, 0x10, 0x10, 0x1E, 0x10, 0x10, 0x1F,
+};
+static constexpr uint8_t FONT_X[7] = {
+    0x11, 0x11, 0x0A, 0x04, 0x0A, 0x11, 0x11,
+};
+static constexpr uint8_t FONT_I[7] = {
+    0x1F, 0x04, 0x04, 0x04, 0x04, 0x04, 0x1F,
+};
+
+static void update_touch_buttons(void)
+{
+    const bool in_start =
+        touch_state.x >= (int32_t)START_BUTTON_X &&
+        touch_state.x <  (int32_t)(START_BUTTON_X + START_BUTTON_WIDTH) &&
+        touch_state.y >= (int32_t)START_BUTTON_Y &&
+        touch_state.y <  (int32_t)(START_BUTTON_Y + START_BUTTON_HEIGHT);
+    const bool in_exit =
+        touch_state.x >= (int32_t)EXIT_BUTTON_X &&
+        touch_state.x <  (int32_t)(EXIT_BUTTON_X + EXIT_BUTTON_WIDTH) &&
+        touch_state.y >= (int32_t)EXIT_BUTTON_Y &&
+        touch_state.y <  (int32_t)(EXIT_BUTTON_Y + EXIT_BUTTON_HEIGHT);
+
+    if (current_screen == APP_DISPLAY_SCREEN_MENU && in_start) {
+        touch_state.start_pressed = true;
+    } else if (current_screen == APP_DISPLAY_SCREEN_GAME && in_exit) {
+        touch_state.exit_pressed = true;
+    }
+}
 
 static void touch_event_callback(struct input_event *evt, void *user_data)
 {
     ARG_UNUSED(user_data);
 
     if (evt->code == INPUT_ABS_X) {
-        touch_state.x = evt->value;
+        touch_state.x = (int32_t)SCREEN_WIDTH - 1 - evt->value;
     } else if (evt->code == INPUT_ABS_Y) {
         touch_state.y = evt->value;
     } else if (evt->code == INPUT_BTN_TOUCH) {
-        const bool pressed = (evt->value != 0);
+        const bool was_pressed = touch_state.pressed;
+        touch_state.pressed = (evt->value != 0);
 
-        touch_state.pressed = pressed;
-        printk("Touch %s: x=%d y=%d\n",
-               pressed ? "pressed" : "released",
-               (int)touch_state.x, (int)touch_state.y);
+        /* Fire on release so X/Y are fully settled from this touch. */
+        if (was_pressed && !touch_state.pressed) {
+            update_touch_buttons();
+        }
     } else {
         return;
     }
@@ -253,6 +291,61 @@ void app_display_draw_start_button(const struct device *dev)
                 FONT_R, letter_scale, START_TEXT_COLOR);
     draw_letter(dev, text_x + 4 * (letter_width + letter_gap), text_y,
                 FONT_T, letter_scale, START_TEXT_COLOR);
+}
+
+void app_display_draw_exit_button(const struct device *dev)
+{
+    static constexpr uint16_t border = 3;
+    static constexpr uint16_t letter_scale = 4;
+    static constexpr uint16_t letter_width = 5 * letter_scale;
+    static constexpr uint16_t letter_height = 7 * letter_scale;
+    static constexpr uint16_t letter_gap = 4;
+    static constexpr uint16_t text_width = 4 * letter_width + 3 * letter_gap;
+    static constexpr uint16_t text_x = EXIT_BUTTON_X + (EXIT_BUTTON_WIDTH - text_width) / 2;
+    static constexpr uint16_t text_y = EXIT_BUTTON_Y + (EXIT_BUTTON_HEIGHT - letter_height) / 2;
+
+    fill_rect(dev, EXIT_BUTTON_X, EXIT_BUTTON_Y,
+              EXIT_BUTTON_WIDTH, EXIT_BUTTON_HEIGHT, START_BORDER_COLOR);
+    fill_rect(dev, EXIT_BUTTON_X + border, EXIT_BUTTON_Y + border,
+              EXIT_BUTTON_WIDTH - (2 * border),
+              EXIT_BUTTON_HEIGHT - (2 * border), START_BUTTON_COLOR);
+
+    draw_letter(dev, text_x, text_y, FONT_E, letter_scale, START_TEXT_COLOR);
+    draw_letter(dev, text_x + (letter_width + letter_gap), text_y,
+                FONT_X, letter_scale, START_TEXT_COLOR);
+    draw_letter(dev, text_x + 2 * (letter_width + letter_gap), text_y,
+                FONT_I, letter_scale, START_TEXT_COLOR);
+    draw_letter(dev, text_x + 3 * (letter_width + letter_gap), text_y,
+                FONT_T, letter_scale, START_TEXT_COLOR);
+}
+
+bool app_display_take_start_pressed(void)
+{
+    const bool pressed = touch_state.start_pressed;
+
+    touch_state.start_pressed = false;
+    if (pressed) {
+        current_screen = APP_DISPLAY_SCREEN_GAME;
+    }
+
+    return pressed;
+}
+
+bool app_display_take_exit_pressed(void)
+{
+    const bool pressed = touch_state.exit_pressed;
+
+    touch_state.exit_pressed = false;
+    if (pressed) {
+        current_screen = APP_DISPLAY_SCREEN_MENU;
+    }
+
+    return pressed;
+}
+
+void app_display_reset_dino_animation(void)
+{
+    dino_prev_x = UINT16_MAX;
 }
 
 void app_display_step_dino(const struct device *dev, uint8_t step)

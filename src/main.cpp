@@ -40,10 +40,28 @@ int main()
     }
 
     uint8_t step = 0;
+    app_display_screen screen = APP_DISPLAY_SCREEN_MENU;
 
     while (true) {
-        app_display_step_dino(display, step);
-        step = (step + 1U) % APP_DISPLAY_DINO_STEPS;
+        if (app_display_take_start_pressed()) {
+            app_display_fill_screen(display, APP_DISPLAY_BG_COLOR);
+            app_display_draw_exit_button(display);
+            screen = APP_DISPLAY_SCREEN_GAME;
+        }
+
+        if (app_display_take_exit_pressed()) {
+            app_display_fill_screen(display, APP_DISPLAY_BG_COLOR);
+            app_display_reset_dino_animation();
+            step = 0;
+            app_display_draw_start_button(display);
+            screen = APP_DISPLAY_SCREEN_MENU;
+        }
+
+        if (screen == APP_DISPLAY_SCREEN_MENU) {
+            app_display_step_dino(display, step);
+            step = (step + 1U) % APP_DISPLAY_DINO_STEPS;
+        }
+
         k_sleep(APP_DISPLAY_ANIMATION_DELAY);
     }
 
