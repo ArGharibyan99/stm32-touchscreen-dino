@@ -52,6 +52,7 @@
 			label = "User";
 			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_0>;
+			status = "disabled";
 		};
 	};
 
@@ -161,17 +162,17 @@
 	status = "okay";
 	clock-frequency = <I2C_BITRATE_STANDARD>;
 
-	/* FT5336/FT6x36 capacitive touch — confirmed at 0x38 via I2C scan
-	 * D15=PB8=SCL, D14=PB9=SDA, D7=PF13=INT, D5=PE11=RST */
-	ft5336: ft5336@38 {
-		compatible = "focaltech,ft5336";
-		reg = <0x38>;
-		int-gpios = <&gpiof 13 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&gpioe 11 GPIO_ACTIVE_LOW>;
-		screen-width = <480>;
-		screen-height = <320>;
-		status = "okay";
-	};
+		/* FT5336/FT6x36 capacitive touch — confirmed at 0x38 via I2C scan
+		 * D15=PB8=SCL, D14=PB9=SDA, D7=PF13=INT, D5=PE11=RST */
+		ft5336: ft5336@38 {
+			compatible = "focaltech,ft5336";
+			reg = <0x38>;
+			int-gpios = <&gpiof 13 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpioe 11 GPIO_ACTIVE_LOW>;
+			screen-width = <480>;
+			screen-height = <320>;
+			status = "okay";
+		};
 };
 
 &i2c2 {

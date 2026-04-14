@@ -48,7 +48,12 @@ static void touch_event_callback(struct input_event *evt, void *user_data)
     } else if (evt->code == INPUT_ABS_Y) {
         touch_state.y = evt->value;
     } else if (evt->code == INPUT_BTN_TOUCH) {
-        touch_state.pressed = (evt->value != 0);
+        const bool pressed = (evt->value != 0);
+
+        touch_state.pressed = pressed;
+        printk("Touch %s: x=%d y=%d\n",
+               pressed ? "pressed" : "released",
+               (int)touch_state.x, (int)touch_state.y);
     } else {
         return;
     }
