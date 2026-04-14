@@ -28,6 +28,7 @@ int main()
 
     display_blanking_off(display);
     app_display_fill_screen(display, 0xFFFFu);
+    app_display_draw_start_button(display);
 
     while (app_display_mount_animation_storage() != 0) {
         k_sleep(K_SECONDS(1));
