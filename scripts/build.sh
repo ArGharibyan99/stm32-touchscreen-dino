@@ -18,6 +18,8 @@ SDK_TMP_DIR="${ROOT_DIR}/.tmp/zephyr-sdk"
 WEST_TOPDIR="${WEST_TOPDIR:-}"
 PRISTINE="${PRISTINE:-auto}"
 
+bash "${ROOT_DIR}/scripts/prepare_sd.sh"
+
 detect_zephyr_sdk() {
   local candidate
   for candidate in \

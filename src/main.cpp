@@ -27,8 +27,24 @@ int main()
     }
 
     display_blanking_off(display);
-    app_display_fill_screen(display, APP_DISPLAY_BG_COLOR);
-    app_display_draw_text_box(display, 8, 8);
+    app_display_fill_screen(display, 0xFFFFu);
+
+    while (app_display_mount_animation_storage() != 0) {
+        k_sleep(K_SECONDS(1));
+    }
+
+    while (app_display_load_dino(display) != 0) {
+        printk("Waiting for /SD:/dino.rgb565 ...\n");
+        k_sleep(K_SECONDS(1));
+    }
+
+    uint8_t step = 0;
+
+    while (true) {
+        app_display_step_dino(display, step);
+        step = (step + 1U) % APP_DISPLAY_DINO_STEPS;
+        k_sleep(APP_DISPLAY_ANIMATION_DELAY);
+    }
 
     while (true) {
         k_sleep(K_FOREVER);

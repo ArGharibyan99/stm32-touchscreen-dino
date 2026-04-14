@@ -40,6 +40,21 @@ The effective build command is:
 west build -p <always|never> -b dino_nucleo_f429zi . -d build/dino_nucleo_f429zi -- -DBOARD_ROOT=$PWD
 ```
 
+## Animation Assets
+
+`./scripts/build.sh` also converts the PNG animation frames from `animation/` into `.rgb565` files under `sdcard/animation/`.
+
+To play the animation on the board, copy all generated `.rgb565` files from `sdcard/animation/` onto the SD card in the same `animation/` folder:
+
+```text
+SD card
+└── animation
+    ├── dino_frame_01.rgb565
+    ├── dino_frame_02.rgb565
+    ├── ...
+    └── dino_frame_15.rgb565
+```
+
 ## Docker Build
 
 ```bash
