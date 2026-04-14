@@ -34,8 +34,8 @@ int main()
         k_sleep(K_SECONDS(1));
     }
 
-    while (app_display_load_dino(display) != 0) {
-        printk("Waiting for /SD:/dino.rgb565 ...\n");
+    while (app_display_load_game_assets(display) != 0) {
+        printk("Waiting for /SD:/dino.rgb565 and /SD:/ground.rgb565 ...\n");
         k_sleep(K_SECONDS(1));
     }
 
@@ -44,13 +44,14 @@ int main()
 
     while (true) {
         if (app_display_take_start_pressed()) {
-            app_display_fill_screen(display, APP_DISPLAY_BG_COLOR);
-            app_display_draw_exit_button(display);
+            app_display_reset_game();
+            app_display_draw_game_screen(display);
             screen = APP_DISPLAY_SCREEN_GAME;
         }
 
         if (app_display_take_exit_pressed()) {
             app_display_fill_screen(display, APP_DISPLAY_BG_COLOR);
+            app_display_reset_game();
             app_display_reset_dino_animation();
             step = 0;
             app_display_draw_start_button(display);
@@ -60,9 +61,13 @@ int main()
         if (screen == APP_DISPLAY_SCREEN_MENU) {
             app_display_step_dino(display, step);
             step = (step + 1U) % APP_DISPLAY_DINO_STEPS;
+        } else {
+            app_display_step_game(display);
         }
 
-        k_sleep(APP_DISPLAY_ANIMATION_DELAY);
+        k_sleep(screen == APP_DISPLAY_SCREEN_MENU
+                ? APP_DISPLAY_ANIMATION_DELAY
+                : APP_DISPLAY_GAME_DELAY);
     }
 
     while (true) {
