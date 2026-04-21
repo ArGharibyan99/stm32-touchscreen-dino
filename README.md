@@ -74,3 +74,11 @@ The flash script looks for connected ST-LINK probes, lets you choose one, and fl
 - `prj.conf` enables C++ support and console output.
 - `west.yml` tracks Zephyr and its dependent repositories as external workspace sources.
 - You need `west`, a working Zephyr environment, and `openocd`.
+
+<img width="960" height="1280" alt="Start Page" src="https://github.com/user-attachments/assets/e30ef2f2-73e3-4e0b-97a5-90c8908443eb" />
+
+<img width="960" height="1280" alt="Play Page" src="https://github.com/user-attachments/assets/d0cfcee7-c16e-4b2d-b84f-435a8dd3d8e2" />
+
+<img width="960" height="1280" alt="Game Over" src="https://github.com/user-attachments/assets/d41ec242-8533-45ec-814b-99e23e531895" />
+
+
