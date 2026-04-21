@@ -45,6 +45,7 @@ RUN python3 -m venv /opt/zephyr-venv && \
       west \
       patool \
       semver \
+      pillow \
       pyelftools \
       PyYAML \
       pykwalify \

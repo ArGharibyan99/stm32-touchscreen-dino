@@ -18,6 +18,8 @@ SDK_TMP_DIR="${ROOT_DIR}/.tmp/zephyr-sdk"
 WEST_TOPDIR="${WEST_TOPDIR:-}"
 PRISTINE="${PRISTINE:-auto}"
 
+bash "${ROOT_DIR}/scripts/prepare_sd.sh"
+
 detect_zephyr_sdk() {
   local candidate
   for candidate in \
@@ -230,6 +232,10 @@ west_args=(
   --
   "-DBOARD_ROOT=${LOCAL_BOARD_ROOT}"
 )
+
+if ! command -v ccache >/dev/null 2>&1; then
+  west_args+=("-DUSE_CCACHE=0")
+fi
 
 if (($# > 0)); then
   west_args=(

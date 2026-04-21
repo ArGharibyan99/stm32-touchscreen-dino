@@ -9,6 +9,7 @@
 #include <st/f4/stm32f429zitx-pinctrl.dtsi>
 #include "arduino_r3_connector.dtsi"
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
 
 / {
 	model = "STMicroelectronics Dino STM32F429ZI-NUCLEO board";
@@ -21,6 +22,8 @@
 		zephyr,flash = &flash0;
 		zephyr,dtcm = &ccm0;
 		zephyr,code-partition = &slot0_partition;
+		zephyr,display = &st7796s;
+		zephyr,touch = &ft5336;
 	};
 
 	leds: leds {
@@ -49,6 +52,7 @@
 			label = "User";
 			gpios = <&gpioc 13 GPIO_ACTIVE_HIGH>;
 			zephyr,code = <INPUT_KEY_0>;
+			status = "disabled";
 		};
 	};
 
@@ -61,6 +65,49 @@
 		die-temp0 = &die_temp;
 		volt-sensor0 = &vref;
 		volt-sensor1 = &vbat;
+		pwm-lcd-backlight = &lcd_backlight;
+		sdhc0 = &sdhc0;
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+
+		lcd_backlight: lcd_backlight {
+			pwms = <&pwm1 1 PWM_MSEC(1) PWM_POLARITY_NORMAL>;
+			label = "LCD Backlight";
+		};
+	};
+
+	mipi_dbi: mipi_dbi {
+		compatible = "zephyr,mipi-dbi-spi";
+		spi-dev = <&spi1>;
+		dc-gpios = <&gpiof 12 GPIO_ACTIVE_HIGH>;
+		reset-gpios = <&gpiod 15 GPIO_ACTIVE_LOW>;
+		write-only;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		st7796s: st7796s@0 {
+			compatible = "sitronix,st7796s";
+			reg = <0>;
+			mipi-max-frequency = <27000000>;
+			mipi-mode = "MIPI_DBI_MODE_SPI_4WIRE";
+			rgb-is-inverted;
+			height = <320>;
+			width = <480>;
+			invert-mode = "1-dot";
+			frmctl1 = [80 10];
+			bpc = [02 02 00 04];
+			dfc = [80 02 3b];
+			pwr1 = [80 25];
+			pwr2 = <0x13>;
+			pwr3 = <0x0a>;
+			vcmpctl = <0x1c>;
+			doca = [40 8a 00 00 25 0a 38 33];
+			pgc = [f0 09 0b 06 04 15 2f 54 42 3c 17 14 18 1b];
+			ngc = [e0 09 0b 06 04 03 2b 43 42 3b 16 14 17 1b];
+			madctl = <0xE8>;
+		};
 	};
 };
 
@@ -113,7 +160,19 @@
 	pinctrl-0 = <&i2c1_scl_pb8 &i2c1_sda_pb9>;
 	pinctrl-names = "default";
 	status = "okay";
-	clock-frequency = <I2C_BITRATE_FAST>;
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+
+		/* FT5336/FT6x36 capacitive touch — confirmed at 0x38 via I2C scan
+		 * D15=PB8=SCL, D14=PB9=SDA, D7=PF13=INT, D5=PE11=RST */
+		ft5336: ft5336@38 {
+			compatible = "focaltech,ft5336";
+			reg = <0x38>;
+			int-gpios = <&gpiof 13 GPIO_ACTIVE_LOW>;
+			reset-gpios = <&gpioe 11 GPIO_ACTIVE_LOW>;
+			screen-width = <480>;
+			screen-height = <320>;
+			status = "okay";
+		};
 };
 
 &i2c2 {
@@ -126,8 +185,22 @@
 &spi1 {
 	pinctrl-0 = <&spi1_sck_pa5 &spi1_miso_pa6 &spi1_mosi_pa7>;
 	pinctrl-names = "default";
-	cs-gpios = <&gpiod 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+	cs-gpios = <&gpiod 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>,
+		   <&gpiof 14 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 	status = "okay";
+
+	sdhc0: sdhc@1 {
+		compatible = "zephyr,sdhc-spi-slot";
+		reg = <1>;
+		status = "okay";
+		spi-max-frequency = <25000000>;
+
+		mmc {
+			compatible = "zephyr,sdmmc-disk";
+			disk-name = "SD";
+			status = "okay";
+		};
+	};
 };
 
 &usart3 {
@@ -156,7 +229,7 @@ zephyr_udc0: &usbotg_fs {
 
 	pwm1: pwm {
 		status = "okay";
-		pinctrl-0 = <&tim1_ch3_pe13>;
+		pinctrl-0 = <&tim1_ch1_pe9>;
 		pinctrl-names = "default";
 	};
 };
